@@ -1,3 +1,5 @@
+import datetime
+
 from scrapy import Spider, Request
 
 from storage import get_db_instance
@@ -24,10 +26,10 @@ class WikiSpider(Spider):
             if date_ and date_.count('-') == 2:
                 cases.append({
                     'country': country,
-                    'date': date_,
+                    'date': datetime.datetime.strptime(date_, "%Y-%m-%d"),
                     'deaths': parse_number(deaths),
                     'recoveries': parse_number(recoveries),
-                    'active_cases': parse_number(active_cases)
+                    'active': parse_number(active_cases)
                 })
         if cases:
             yield {'cases': cases}

@@ -13,7 +13,7 @@ class MongoPipeline:
                 collection.insert_one(item)
 
         elif isinstance(spider, WikiSpider):
-            collection = self.db.find('cases')
+            collection = self.db.get_collection('cases')
             collection.insert_many(item['cases'])
 
         return item
