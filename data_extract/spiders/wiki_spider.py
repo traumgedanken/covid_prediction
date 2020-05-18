@@ -11,11 +11,12 @@ class WikiSpider(Spider):
 
     def start_requests(self):
         for country in self.countries.find():
-            yield Request(f'https://en.wikipedia.org/wiki/COVID-19_pandemic_in_{country["name"]}',
+            yield Request(f'https://en.wikipedia.org/wiki/COVID-19_pandemic_in_{country["name"]}?id={country["_id"]}',
                           callback=self.parse)
 
     def parse(self, response):
         country = parse_country(response.xpath('//h1/text()').get())
+        country_id = response.url.split('id=')[-1]
         rows = response.xpath('//b[text()="# of cases"]/../../../following-sibling::tr')
         cases = []
         for row in rows:
@@ -29,7 +30,8 @@ class WikiSpider(Spider):
                     'date': datetime.datetime.strptime(date_, "%Y-%m-%d"),
                     'deaths': parse_number(deaths),
                     'recoveries': parse_number(recoveries),
-                    'active': parse_number(active_cases)
+                    'active': parse_number(active_cases),
+                    'country_id': country_id
                 })
         if cases:
             yield {'cases': cases}
