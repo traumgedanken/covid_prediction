@@ -123,27 +123,31 @@ def plot_prediction(df, prop, country):
         raise ValueError('prediction only for non percent properties')
 
     country_siblings_df = df[df['country'].isin(_country_cluster_siblings(df, prop, country))]
+    country_days = df[df['country'] == country]['day']
+    country_props = df[df['country'] == country][prop]
     percent_prop = f'{prop} percent'
+    country_percent_props = df[df['country'] == country][percent_prop]
     x = np.array(country_siblings_df['day'])
     y = np.array(country_siblings_df[percent_prop])
 
     population = df[df['country'] == country]['population'].iloc[0]
     x_pred, y_pred = _curve_regression(x, y, prop_regression_funcs[prop])
+    x_pred, y_pred = _curve_regression(np.append(x_pred, country_days),
+                                       np.append(y_pred, country_percent_props),
+                                       prop_regression_funcs[prop])
     y_pred = _percent_property_in_counts(y_pred, population)
-    country_days = df[df['country'] == country]['day']
-    country_props = df[df['country'] == country][prop]
+
 
     last_country_day = country_days.iloc[-1]
     last_country_day_real_value = country_props.iloc[-1]
-    last_country_day_predicted_value = y_pred[x_pred > last_country_day][0]
+    last_country_day_predicted_value = y_pred[x_pred >= last_country_day][0]
 
     labels = _days_to_dates(x_pred, df[df['country'] == country]['date'].iloc[0])
     plt.xticks(x_pred, labels, fontsize=8, rotation=45)
     plt.plot(country_days, country_props)
 
-    plot_index = x_pred > last_country_day
-    plt.plot(x_pred[plot_index],
-             (y_pred - (last_country_day_predicted_value - last_country_day_real_value))[plot_index],
+    plt.plot(x_pred,
+             y_pred * (last_country_day_real_value / last_country_day_predicted_value),
              color='red')
-
+    plt.grid(color='grey')
     plt.show()
