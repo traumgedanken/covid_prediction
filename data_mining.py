@@ -118,7 +118,12 @@ def _days_to_dates(days, start_date_time):
     return [' '.join(d.ctime().split()[1:3][::-1]) for d in dates]
 
 
-def plot_prediction(df, prop, country):
+def _scale_prediction(last_x_real, last_y_real, x_pred, y_pred):
+    last_country_day_predicted_value = y_pred[x_pred >= last_x_real][0]
+    return y_pred * (last_y_real / last_country_day_predicted_value)
+
+
+def plot_prediction(df, prop, country, graphic_mode=True):
     if prop.endswith('percent'):
         raise ValueError('prediction only for non percent properties')
 
@@ -136,18 +141,34 @@ def plot_prediction(df, prop, country):
                                        np.append(y_pred, country_percent_props),
                                        prop_regression_funcs[prop])
     y_pred = _percent_property_in_counts(y_pred, population)
+    y_pred = _scale_prediction(country_days.iloc[-1], country_props.iloc[-1], x_pred, y_pred)
+
+    if graphic_mode:
+        labels = _days_to_dates(x_pred, df[df['country'] == country]['date'].iloc[0])
+        plt.xticks(x_pred, labels, fontsize=8, rotation=45)
+        plt.plot(country_days, country_props, label='real values')
+        plt.plot(x_pred, y_pred, color='red', label='predicted values')
+        plt.grid(color='grey')
+        plt.xlabel('date')
+        plt.ylabel(f'{prop} cases in sum, person')
+        plt.legend(loc='upper left')
+        plt.show()
+    return (country_days, country_props), (x_pred, y_pred)
 
 
-    last_country_day = country_days.iloc[-1]
-    last_country_day_real_value = country_props.iloc[-1]
-    last_country_day_predicted_value = y_pred[x_pred >= last_country_day][0]
-
+def plot_derivative_prediction(df, prop, country):
+    (x_real, y_real), (x_pred, y_pred) = plot_prediction(df, prop, country, graphic_mode=False)
     labels = _days_to_dates(x_pred, df[df['country'] == country]['date'].iloc[0])
-    plt.xticks(x_pred, labels, fontsize=8, rotation=45)
-    plt.plot(country_days, country_props)
+    y_real_der = np.gradient(y_real, 1)
+    y_pred_der = _scale_prediction(np.array(x_real)[-1], np.array(y_real_der)[-1],
+                                   x_pred, np.gradient(y_pred, 1))
 
-    plt.plot(x_pred,
-             y_pred * (last_country_day_real_value / last_country_day_predicted_value),
-             color='red')
+    plt.xticks(x_pred, labels, fontsize=8, rotation=45)
+    plt.plot(x_real, y_real_der, label='real values')
+    plt.plot(x_pred, y_pred_der, color='red', label='predicted values')
     plt.grid(color='grey')
+    plt.xlabel('date')
+    plt.ylabel(f'new {prop} cases for this day, person')
+    plt.legend(loc='upper left')
     plt.show()
+
