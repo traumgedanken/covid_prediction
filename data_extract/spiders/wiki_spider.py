@@ -23,14 +23,17 @@ class WikiSpider(Spider):
             date_ = row.xpath('./td[1]/text()').get()
             deaths = row.xpath('.//div[contains(@style, "#A50026")]/@title').get()
             recoveries = row.xpath('.//div[contains(@style, "SkyBlue")]/@title').get()
-            active_cases = row.xpath('.//div[contains(@style, "Tomato")]/@title').get()
+            active = row.xpath('.//div[contains(@style, "Tomato")]/@title').get()
+            serology_confirmed = row.xpath('.//div[contains(@style, "Gold")]/@title').get()
+            pcr_confirmed = row.xpath('.//div[contains(@style, "OrangeRed")]/@title').get()
+
             if date_ and date_.count('-') == 2:
                 cases.append({
                     'country': country,
                     'date': datetime.datetime.strptime(date_, "%Y-%m-%d"),
                     'deaths': parse_number(deaths),
                     'recoveries': parse_number(recoveries),
-                    'active': parse_number(active_cases),
+                    'active': parse_number(active) + parse_number(serology_confirmed) + parse_number(pcr_confirmed),
                     'country_id': country_id
                 })
         if cases:
