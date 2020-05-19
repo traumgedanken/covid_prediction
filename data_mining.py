@@ -100,6 +100,7 @@ def _country_cluster_siblings(df, prop, country):
 
 def _curve_regression(x_data, y_data, func):
     popt, pcov = curve_fit(func, x_data, y_data, maxfev=1000000)
+    print(max(x_data))
     x_pred = np.linspace(0, max(x_data), dtype=int, num=30)
     y_pred = func(x_pred, *popt)
     return x_pred, y_pred

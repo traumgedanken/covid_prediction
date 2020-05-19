@@ -17,7 +17,7 @@ class WikiSpider(Spider):
     def parse(self, response):
         country = parse_country(response.xpath('//h1/text()').get())
         country_id = response.url.split('id=')[-1]
-        rows = response.xpath('//b[text()="# of cases"]/../../../following-sibling::tr')
+        rows = response.xpath('//b[text()="# of cases" or text()="Cases (% rise)"]/../../../following-sibling::tr')
         cases = []
         for row in rows:
             date_ = row.xpath('./td[1]/text()').get()
