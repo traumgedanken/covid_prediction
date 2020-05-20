@@ -1,4 +1,5 @@
 import datetime
+from urllib.parse import urljoin
 
 from scrapy import Spider, Request
 
@@ -8,7 +9,6 @@ from storage import get_db_instance
 class WikiSpider(Spider):
     name = 'wiki'
     countries = get_db_instance().get_collection('countries')
-
     def start_requests(self):
         for country in self.countries.find():
             yield Request(f'https://en.wikipedia.org/wiki/COVID-19_pandemic_in_{country["name"]}?id={country["_id"]}',
