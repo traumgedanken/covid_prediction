@@ -78,10 +78,10 @@ def plot_prediction(df, prop, country, graphic_mode=True):
     y = np.array(country_siblings_df[percent_prop])
 
     population = df[df['country'] == country]['population'].iloc[0]
-    x_pred, y_pred = _curve_regression(x, y, prop_regression_funcs[prop])
+    x_pred, y_pred = _curve_regression(x, y, _exp_func)
     x_pred, y_pred = _curve_regression(np.append(x_pred, country_days),
                                        np.append(y_pred, country_percent_props),
-                                       prop_regression_funcs[prop])
+                                       _exp_func)
     y_pred = _percent_property_in_counts(y_pred, population)
     y_pred = _scale_prediction(country_days.iloc[-1], country_props.iloc[-1], x_pred, y_pred)
 
@@ -162,12 +162,8 @@ def _curve_regression(x_data, y_data, func):
     return x_pred, y_pred
 
 
-prop_regression_funcs = {
-    'total': lambda x, a, b, c, d: a * np.arctan(b * x + c) + d,
-    'deaths': lambda x, a, b, c, d: a * np.arctan(b * x + c) + d,
-    'recoveries': lambda x, a, b, c: a * x * x + b * x + c,
-    'active': lambda x, a, b, c: a * x * x + b * x + c
-}
+def _exp_func(x, a, b, c, d):
+    return a * np.arctan(b * x + c) + d
 
 
 def _days_to_dates(days, start_date_time):
